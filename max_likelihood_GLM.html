@@ -259,7 +259,8 @@ anova(janka.ml1)</code></pre>
 <pre class="r"><code>janka.gamma &lt;- glm(Hardness~Density, data= janka, family=Gamma(link= &quot;sqrt&quot;))
 #summary(janka.gamma)
 
-ggplot(janka,aes(Density,Hardness)) +geom_point() +
+ggplot(janka,aes(Density,Hardness)) + 
+  geom_point() +
   geom_smooth(method=&quot;glm&quot;,colour=&quot;red&quot;,
                          method.args=list(family=&quot;Gamma&quot;(link=&quot;sqrt&quot;)))+
   labs(title=&quot;GLM, square-root link, Gamma variance&quot;)</code></pre>

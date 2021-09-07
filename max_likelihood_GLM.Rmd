@@ -142,7 +142,8 @@ We know that in the normal least squares analysis the best fit was produced by t
 janka.gamma <- glm(Hardness~Density, data= janka, family=Gamma(link= "sqrt"))
 #summary(janka.gamma)
 
-ggplot(janka,aes(Density,Hardness)) +geom_point() +
+ggplot(janka,aes(Density,Hardness)) + 
+  geom_point() +
   geom_smooth(method="glm",colour="red",
                          method.args=list(family="Gamma"(link="sqrt")))+
   labs(title="GLM, square-root link, Gamma variance")
@@ -154,8 +155,7 @@ Figure 8.3 might help relate the GLM approach using a link function to the linea
 
 * In contrast, the GLM (right-hand panel) uses a square-root link function to transform the linear relationship on the square-root scale into an upward-bending curve through the middle of the untransformed data.
 
-* The increasing variability is handled separately in the GLM by the gamma distribution variance function. The link function (and its
-opposite the inverse link function) map the straight line from the linear model and the curve from the GLM onto each other.
+* The increasing variability is handled separately in the GLM by the gamma distribution variance function. The link function (and its opposite the inverse link function) map the straight line from the linear model and the curve from the GLM onto each other.
 
 We can get CIs for the regression intercept and slope (remember the curve in the figures is linear on the scale of the link function, the square root in this case):
 
