@@ -76,7 +76,7 @@ Box Cox transformations are done by raising data to the power (lambda, $\lambda$
 
 Since any number raised to the power of zero equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
 
-The R output for the boxcox() function plots the maximum likelihood
+The R output for the `boxcox()` function plots the maximum likelihood
 surface (the curve) together with a maximum likelihood-based 95% CI. The 95% CI is produced by dropping down 1.92 log-likelihood units from the maximum likelihood value, moving horizontally left and right (the dotted line labelled 95% in Fig. 8.1) until the likelihood surface is met and then dropping down from these points as shown by the outer vertical dotted lines in the same figure. The value of 1.92 derives from the critical value of chi-squared (deviance, the generalized equivalent of SS, is distributed approximately following chi-square) with 1 DF and at the P < 0.05 level of confidence in question, divided by two (for a two-tailed test).
 
 ![](images/boxcox.jpeg)  
