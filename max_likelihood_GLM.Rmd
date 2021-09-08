@@ -54,7 +54,7 @@ names(janka) <- c("Density", "Hardness") # assign full names
 janka # Box 4.1
 ```
 
-![](images/Janka_hardness_test.jpeg) 
+![](images/Janka_hardness_test.png) 
 
 ```{r janka model plot}
 #Timber hardness measured on the 'Janka' scale
