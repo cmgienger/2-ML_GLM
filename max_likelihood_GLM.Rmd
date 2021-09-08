@@ -48,9 +48,15 @@ library("ggfortify")
 * Deviance approximately follows the chi-square distribution (with DF equal to the number of parameters of the model), which allows the calculation of levels of probability and confidence, just as the normal distribution does when using normal least squares.
 
 ```{r janka linear model}
+#janka is pronounced 'Yangka'
 data(janka) # load data
 names(janka) <- c("Density", "Hardness") # assign full names
 janka # Box 4.1
+```
+
+![](images/Janka_hardness_test.jpeg) 
+
+```{r janka model plot}
 #Timber hardness measured on the 'Janka' scale
 ggplot(janka, aes(x=Density, y=Hardness)) + 
   geom_point()+
