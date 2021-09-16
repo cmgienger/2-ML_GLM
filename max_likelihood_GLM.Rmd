@@ -93,6 +93,9 @@ surface (the curve) together with a maximum likelihood-based 95% CI. The 95% CI 
 The results of the Box–Cox transformation suggest that a value of
 lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.
 
+Video explaining calculation of lambda:
+https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s
+
 **Basics of Generalized Linear Models**
 \
 \
