@@ -90,9 +90,12 @@ surface (the curve) together with a maximum likelihood-based 95% CI. The 95% CI 
 
 ![](images/boxcox.jpeg)  
 \
+The solid black line graphs the Box-Cox transformation for 𝜆=1, which is just 𝑥→𝑥−1. It merely shifts the center of the batch to 0 (as do all the Box-Cox transformations). The upward curving red line is for 𝜆=2. The downward curving lines are in order of increasing curvature, the smaller values of 𝜆 down to −1.  
+![](images/boxcox_2.png) 
+\
 The results of the Box–Cox transformation suggest that a value of
 lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.
-
+\
 Video explaining calculation of lambda:
 https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s
 
