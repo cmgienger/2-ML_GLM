@@ -80,6 +80,9 @@ Figure 8.1 A likelihood surface for the Box–Cox function applied to the simple
 
 Box Cox transformations are done by raising data to the power (lambda, $\lambda$) that is systematically varied. For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on. The data raised to the power one are untransformed.
 
+Example: if the Lambda is 2 then y^1^ = y^2^ (each value is squared)  
+![](images/lambda_transform.png) 
+
 Since any number raised to the power of zero equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
 
 The R output for the `boxcox()` function plots the maximum likelihood
