@@ -193,7 +193,8 @@ ggplot(janka,aes(Density,Hardness)) +
   labs(title="GLM, square-root link, Gamma variance")
 ```
 
-![](../images/fig8.3.jpeg)\
+![](../images/fig8.3.jpeg)
+\
 Figure 8.3 might help relate the GLM approach using a link function to the linear model analysis of the square-root transformed data.
 
 -   To recap, the untransformed data (left-hand panel) show that the positive linear relationship has some upward curvature with increasing scatter.
@@ -213,6 +214,15 @@ confint(janka.gamma)
 
 Since confidence intervals are not based on the normal distribution, they are not constrained to be symmetric.
 However, they are interpreted in the same way.
+\
+\
+So how do we tell which model is better, one fit vis OLS or one fit via maximum likelihood?
+```{r compare glm models}
+model_comp <- performance::compare_performance(janka.ls1, janka.gamma)
+print_md(model_comp)
+```
+
+While comparing these indices is often useful, making a decision (for instance, which model to keep or drop) can often be hard, as the indices can give conflicting suggestions. Additionally, it is sometimes unclear which index to favor in the given context.
 
 **Summary**
 
