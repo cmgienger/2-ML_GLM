@@ -48,13 +48,11 @@ library("patchwork")
 
 -   Where OLS has exactly one best solution for model fit, ML methods are *iterative* and *approximate*.
     Essentially we try out many potential lines of best fit using algorithms and gradually home in on what looks like the best solution.
-<br>
-<br>
-<center>
-![](../images/IWLS_vs_OLS.gif)
-</center>
-<br>
-<br>
+    <br> <br>
+
+    <center>![](../images/IWLS_vs_OLS.gif)</center>
+
+    <br> <br>
 
 -   To avoid very small numbers the calculations are done with the (natural) log-likelihood (calculations that are multiplicative on the likelihood scale become additive with log-likelihoods).
 
@@ -74,16 +72,16 @@ janka # Box 4.1
 
 **OLS Example:**
 
-The Janka hardness test, created by Austrian-born American researcher Gabriel Janka (1864–1932), measures the resistance of a sample of wood to denting and wear. It measures the force required to embed a .44 in steel ball halfway into a sample of wood. This ball diameter was chosen to produce a circle with an area of 100 square millimeters, or one square centimeter.
+The Janka hardness test, created by Austrian-born American researcher Gabriel Janka (1864–1932), measures the resistance of a sample of wood to denting and wear.
+It measures the force required to embed a .44 in steel ball halfway into a sample of wood.
+This ball diameter was chosen to produce a circle with an area of 100 square millimeters, or one square centimeter.
 
 A common use of Janka hardness ratings is to determine whether a species is suitable for use as flooring.
 
-![](../images/Janka_hardness_test.png)
-<br>
-<br>
-Based on the sampled species above it looks like the hardest Brazilian hardwoods are much harder than you might expect based on their ordering. The pattern looks 'non-linear' and almost seems exponential at the bottom (hardest) end. 
-<br>
-<br>
+![](../images/Janka_hardness_test.png) <br> <br> Based on the sampled species above it looks like the hardest Brazilian hardwoods are much harder than you might expect based on their ordering.
+The pattern looks 'non-linear' and almost seems exponential at the bottom (hardest) end.
+<br> <br>
+
 ```{r janka model plot, message=FALSE, warning=FALSE}
 #Timber hardness measured on the 'Janka' scale
 plot_ols <-
@@ -102,15 +100,18 @@ janka.ls1 <- lm(Hardness~Density, data = janka)
 Check assumptions for fitting a linear model.
 I suggest a way better than the `autoplot` function in `ggfortify` that we have used before.
 
-```{r check lm assumptions, message=FALSE, warning=FALSE, fig.height=7, fig.width=9}
+```{r check lm assumptions, message=FALSE, warning=FALSE, fig.height=8, fig.width=9}
 performance::check_model(janka.ls1) #easystats package
 ```
 
-There are two very subtle problems with the OLS model:
--  there is some curvature in the relationship that is not captured using the `lm` specification
--  the variance is not constant; it increases with the mean
+There are two very subtle problems with the OLS model: 
 
-One way to deal with these issue is to transform the response variable. But how should be transform the response? What mathematical function should be use? 
+- there is some curvature in the relationship that is not captured using the `lm` specification 
+- the variance is not constant; it increases with the mean
+
+One way to deal with these issue is to transform the response variable.
+But how should be transform the response?
+What mathematical function should be use?
 
 Another way is to deal with these issues is to perform the transformation directly within the linear model specification (we will do this later using a GLM).
 
@@ -118,21 +119,22 @@ Another way is to deal with these issues is to perform the transformation direct
 
 Figure 8.1 A likelihood surface for the Box--Cox function applied to the simple linear regression of the Janka wood hardness data.
 
-Box Cox transformations are done by raising each point of the response variable (y) to a power (lambda, $\lambda$) that is systematically varied. For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on. In Box-Cox transformations, only the response variable 
-(y) is transformed to improve model assumptions, while the predictor variables (x) remain unchanged.
+Box Cox transformations are done by raising each point of the response variable (y) to a power (lambda, $\lambda$) that is systematically varied.
+For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on.
+In Box-Cox transformations, only the response variable (y) is transformed to improve model assumptions, while the predictor variables (x) remain unchanged.
 
-```{r janka box cox}
+```{r janka box cox, fig.align='center'}
 boxcox(janka.ls1) #see linear regression for janka.ls1
 ```
 
-The peak $\lambda$ (transformation value) looks to be around 0.5 with confidence intervals definitely spanning 0.5. 
+The peak $\lambda$ (transformation value) looks to be around 0.5 with confidence intervals definitely spanning 0.5.
 
 The R output for the `boxcox()` function plots the maximum likelihood surface (the curve) together with a maximum likelihood-based 95% CI.
 
 The 95% CI is produced by dropping down 1.92 log-likelihood units from the maximum likelihood value, moving horizontally left and right (the dotted line labelled 95% in Fig. 8.1) until the likelihood surface is met and then dropping down from these points as shown by the outer vertical dotted lines in the same figure.
 The value of 1.92 derives from the critical value of chi-squared (deviance, the generalized equivalent of SS, is distributed approximately following chi-square) with 1 DF and at the P \< 0.05 level of confidence in question, divided by two (for a two-tailed test).
 
-**So how do we interpret $\lambda$?**
+**So how do we interpret** $\lambda$?
 
 Any number raised to the power of **zero** equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
 
@@ -144,9 +146,27 @@ If the lambda is **three** then y^1^ = y^3^ (each value is cubed)
 
 For negative values of lambda, we use the reciprocals.
 
-![](../images/lambda_transform.png)
+```{r squared values, echo=FALSE, message=FALSE, warning=FALSE}
 
-![](../images/boxcox.jpeg)\
+# Original values
+original_values <- c(2.00, 5.64, 9.26, 14.26, 34.21)
+
+# Create data frame with math-friendly column names
+data <- data.frame(
+  Untransformed = original_values,
+  `$y^2$` = original_values^2,
+  `$y^3$` = original_values^3,
+  check.names = FALSE
+)
+
+# Display the table
+knitr::kable(data, format = "pipe", digits = 2, align = "c",
+      caption = "Original Data and Powers of y")
+```
+\
+\
+![](../images/boxcox.jpeg)
+\
 \
 The solid black line graphs the Box-Cox transformation for 𝜆=1, which is just 𝑥→𝑥−1.
 It merely shifts the center of the batch to 0 (as do all the Box-Cox transformations).
@@ -156,6 +176,7 @@ The downward curving lines are in order of increasing curvature, the smaller val
 ![](../images/boxcox_2.png)\
 The results of the Box--Cox transformation of Janka hardness data suggest that a value of lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.\
 Video explaining calculation of lambda: <https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s>\
+
 \
 
 ```{r plot sqrt transform, fig.width=8, message=FALSE, warning=FALSE}
@@ -170,7 +191,6 @@ plot_sqrt <-
 plot_ols + plot_sqrt #use patchwork to show figures side-by-side
 
 ```
-
 
 We noted previously that another way is to deal with the curvature and non-constant variance issues is to perform the transformation directly within the linear model specification; We will do this using a GLM.
 
@@ -205,7 +225,7 @@ However, *rather than transforming the data we transform the predictions made by
 Commonly used link functions include the *log*, *square root*, and *logistic*.
 
 | **Response Type**         | **Distribution (Family)** | **Link Function** | **Typical Use**                  |
-|---------------------------|---------------------------|-------------------|----------------------------------|
+|-----------------|-----------------|-----------------|----------------------|
 | Count                     | Poisson                   | Log               | Abundance, number of individuals |
 | Overdispersed Count       | Negative Binomial         | Log               | Abundance with high variance     |
 | Binary (presence/absence) | Binomial                  | Logit or Probit   | Species occurrence               |
