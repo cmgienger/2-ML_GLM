@@ -4,28 +4,33 @@ subtitle: Hector 2015 Chapter 8
 output:
   html_document:
     df_print: paged
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup2, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-packages_needed <- c("SemiPar", # data
+packages_needed <- c("GLMsData", # janka hardness data
                      "ggplot2", # graphics
                      "MASS", # Box-Cox
                      "arm", # display() etc.
                      "ggfortify", # check model assumptions
-                     "easystats" #check model assumptions
+                     "easystats", #check model assumptions
+                     "patchwork"
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
   install.packages(pk_to_install,repos="http://cran.r-project.org")
 }
 #lapply(packages_needed, require, character.only = TRUE)
-library("SemiPar")
+library("GLMsData")
 library("ggplot2")
 library("MASS")
 library("arm")
 library("ggfortify")
 library("easystats")
+library("patchwork")
 ```
 
 \
@@ -33,20 +38,27 @@ library("easystats")
 
 -   Given a set of data and statistical model, find the values of the parameters that are most likely to reproduce the data; those that "find the best fit"
 
--   Remember that we have seen this before in a different context; Ordinary Least Squares (OLS) Regression finds the single-best line of fit that minimizes the sum of the squared differences; works for normal data
+-   Remember that we have seen this before in a different context; **Ordinary Least Squares (OLS)** Regression finds the single-best line of fit that minimizes the sum of the squared differences; works for normal data
 
 -   OLS doesn't work with data having other distributions; binomial is obvious example
 
 -   Maximum likelihood provides a more general approach that applies to a broader range of data (hence 'generalized')
 
--   The method that underlies GLMs is called 'iterative weighted least squares'
+-   The method that underlies GLMs is called **Iterative Weighted Least Squares**
 
 -   Where OLS has exactly one best solution for model fit, ML methods are *iterative* and *approximate*.
     Essentially we try out many potential lines of best fit using algorithms and gradually home in on what looks like the best solution.
+<br>
+<br>
+<center>
+![](../images/IWLS_vs_OLS.gif)
+</center>
+<br>
+<br>
 
 -   To avoid very small numbers the calculations are done with the (natural) log-likelihood (calculations that are multiplicative on the likelihood scale become additive with log-likelihoods).
 
--   The generalized version of SS is called the **deviance**.
+-   The generalized version of SS (sums of squares) is called the **deviance**.
     Deviance is defined in terms of comparing pairs of models where one is more complex and the other a simplified version (as done in R using the `anova()` function).
 
 -   Deviance is twice the difference in the log-likelihoods of the more complex and simplified models (expressed as a negative value).
@@ -62,13 +74,22 @@ janka # Box 4.1
 
 **OLS Example:**
 
-![](../images/Janka_hardness_test.png)
+The Janka hardness test, created by Austrian-born American researcher Gabriel Janka (1864–1932), measures the resistance of a sample of wood to denting and wear. It measures the force required to embed a .44 in steel ball halfway into a sample of wood. This ball diameter was chosen to produce a circle with an area of 100 square millimeters, or one square centimeter.
 
+A common use of Janka hardness ratings is to determine whether a species is suitable for use as flooring.
+
+![](../images/Janka_hardness_test.png)
+<br>
+<br>
+Based on the sampled species above it looks like the hardest Brazilian hardwoods are much harder than you might expect based on their ordering. The pattern looks 'non-linear' and almost seems exponential at the bottom (hardest) end. 
+<br>
+<br>
 ```{r janka model plot, message=FALSE, warning=FALSE}
 #Timber hardness measured on the 'Janka' scale
 ggplot(janka, aes(x=Density, y=Hardness)) + 
   geom_point()+
-  geom_smooth(method=lm)
+  geom_smooth(method=lm) +
+  ggtitle("What is the relationship between (fiber) density and wood hardness?")
 
 ## Normal least squares linear regression using lm(): 
 janka.ls1 <- lm(Hardness~Density, data = janka)
@@ -77,7 +98,7 @@ janka.ls1 <- lm(Hardness~Density, data = janka)
 Check assumptions for fitting a linear model.
 I suggest a way better than the `autoplot` function in `ggfortify` that we have used before.
 
-```{r check lm assumptions, message=FALSE, warning=FALSE, fig.height=7}
+```{r check lm assumptions, message=FALSE, warning=FALSE, fig.height=7, fig.width=9}
 performance::check_model(janka.ls1) #easystats package
 ```
 
@@ -85,23 +106,33 @@ performance::check_model(janka.ls1) #easystats package
 
 Figure 8.1 A likelihood surface for the Box--Cox function applied to the simple linear regression of the Janka wood hardness data.
 
-Box Cox transformations are done by raising data to the power (lambda, $\lambda$) that is systematically varied.
-For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on.
+Box Cox transformations are done by raising each point of the response variable (y) to a power (lambda, $\lambda$) that is systematically varied. For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on. In Box-Cox transformations, only the response variable 
+(y) is transformed to improve model assumptions, while the predictor variables (x) remain unchanged.
 
 ```{r janka box cox}
 boxcox(janka.ls1) #see linear regression for janka.ls1
 ```
 
-The data raised to the power one are untransformed.
-
-Example: if the Lambda is 2 then y^1^ = y^2^ (each value is squared)\
-![](../images/lambda_transform.png)
-
-Since any number raised to the power of zero equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
+The peak $\lambda$ (transformation value) looks to be around 0.5 with confidence intervals definitely spanning 0.5. 
 
 The R output for the `boxcox()` function plots the maximum likelihood surface (the curve) together with a maximum likelihood-based 95% CI.
+
 The 95% CI is produced by dropping down 1.92 log-likelihood units from the maximum likelihood value, moving horizontally left and right (the dotted line labelled 95% in Fig. 8.1) until the likelihood surface is met and then dropping down from these points as shown by the outer vertical dotted lines in the same figure.
 The value of 1.92 derives from the critical value of chi-squared (deviance, the generalized equivalent of SS, is distributed approximately following chi-square) with 1 DF and at the P \< 0.05 level of confidence in question, divided by two (for a two-tailed test).
+
+**So how do we interpret $\lambda$?**
+
+Any number raised to the power of **zero** equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
+
+The data raised to the power **one** are untransformed.
+
+If the lambda is **two** then y^1^ = y^2^ (each value is squared)
+
+If the lambda is **three** then y^1^ = y^3^ (each value is cubed)
+
+For negative values of lambda, we use the reciprocals.
+
+![](../images/lambda_transform.png)
 
 ![](../images/boxcox.jpeg)\
 \
@@ -111,13 +142,13 @@ The upward curving red line is for 𝜆=2.
 The downward curving lines are in order of increasing curvature, the smaller values of 𝜆 down to −1.
 \
 ![](../images/boxcox_2.png)\
-The results of the Box--Cox transformation suggest that a value of lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.\
-Video explaining calculation of lambda: <https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s>
-\
+The results of the Box--Cox transformation of Janka hardness data suggest that a value of lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.\
+Video explaining calculation of lambda: <https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s>\
 \
 **Basics of Generalized Linear Models**\
 \
-The general form of the GLM is:
+The general form of the GLM is
+:
 
 **glm**(formula, **family**=familytype(**link**=linkfunction), **data**=)\
 \
@@ -133,15 +164,30 @@ GLMs have three components:
 -   a link function.
 
 The first is the most familiar.
-In R, the **linear predictor** is what comes after the tilde (\~) in our linear model formula. In the Janka example above it is wood density.
+In R, the **linear predictor** is what comes after the tilde (\~) in our linear model formula.
+In the Janka example above it is wood density.
 
 The **variance function** models the variation in the data.
-This is also familiar to us since OLS uses the normal distribution to model the residual variation. The difference here is that GLMs are not restricted to the normal distribution but make use of a much wider range of distribution 'families' including the *poisson*, the *binomial*, and the *gamma*. 
+This is also familiar to us since OLS uses the normal distribution to model the residual variation.
+The difference here is that GLMs are not restricted to the normal distribution but make use of a much wider range of distribution 'families' including the *poisson*, the *binomial*, and the *gamma*.
 
 The third component is the least familiar.
-The **link** function plays a role equivalent to the transformation in normal least squares models. However, *rather than transforming the data we transform the predictions made by the linear predictor*. Commonly used link functions include the *log*, *square root*, and *logistic*.
+The **link** function plays a role equivalent to the transformation in normal least squares models.
+However, *rather than transforming the data we transform the predictions made by the linear predictor*.
+Commonly used link functions include the *log*, *square root*, and *logistic*.
 
-![](../images/GLM_families.jpeg)
+| **Response Type**         | **Distribution (Family)** | **Link Function** | **Typical Use**                  |
+|---------------------------|---------------------------|-------------------|----------------------------------|
+| Count                     | Poisson                   | Log               | Abundance, number of individuals |
+| Overdispersed Count       | Negative Binomial         | Log               | Abundance with high variance     |
+| Binary (presence/absence) | Binomial                  | Logit or Probit   | Species occurrence               |
+| Proportions               | Binomial                  | Logit             | Survival rate, cover             |
+| Continuous, positive      | Gamma                     | Log or Inverse    | Biomass, energetic rates         |
+| Continuous, unbounded     | Gaussian                  | Identity          | Temperature, body size           |
+
+: GLMs allow for response variables with non-normal distributions, making them flexible for ecological data. The choice of error structure (distribution + link function) depends on the type of response variable:
+
+![](../images/GLM_families_visual.png)
 
 To see how this works, lets fit the Janka model using both OLS and GLM.
 
@@ -158,7 +204,7 @@ anova(janka.ml1)
 ```
 
 Notice in the model specification above, the *family=gaussian* and *link=identity* are the defaults.
-Like other R code, we can omit specification of default parameters, but probably best to include them until we understand the modes fully.
+Like other R code, we can omit specification of default parameters, but probably best to include them until we understand the models fully.
 
 *Gaussian* is another word for 'normal'; the *identity* link is equivalent to performing no transformation, so no transformation is applied to the fitted values from the linear predictor.
 
@@ -175,8 +221,8 @@ Quick question: **What are mean squares used for? What do they tell us?**
 The point here is to demonstrate that the `glm()` function with the Gaussian variance function and identity link performs the equivalent analysis to the `lm()` function we can see how to take fuller advantage of its greater flexibility.
 
 **We need to model the mean and the variance.** We know that in the normal least squares analysis for the Janka data, the best fit was produced by the square-root transformation, as recommended by the Box--Cox results.
-However, with this transformation the variance increased as the mean increased (slightly).
-\
+However, with this transformation the variance increased as the mean increased (slightly).\
+
 \
 We can have the best of both worlds in our GLM by using a square-root link function in combination with a distribution in which the variance increases with the mean.
 It turns out that for the gamma distribution the variance increases as the square of the mean.
@@ -193,8 +239,7 @@ ggplot(janka,aes(Density,Hardness)) +
   labs(title="GLM, square-root link, Gamma variance")
 ```
 
-![](../images/fig8.3.jpeg)
-\
+![](../images/fig8.3.jpeg)\
 Figure 8.3 might help relate the GLM approach using a link function to the linear model analysis of the square-root transformed data.
 
 -   To recap, the untransformed data (left-hand panel) show that the positive linear relationship has some upward curvature with increasing scatter.
@@ -213,16 +258,18 @@ confint(janka.gamma)
 ```
 
 Since confidence intervals are not based on the normal distribution, they are not constrained to be symmetric.
-However, they are interpreted in the same way.
-\
+However, they are interpreted in the same way.\
+
 \
 So how do we tell which model is better, one fit vis OLS or one fit via maximum likelihood?
+
 ```{r compare glm models}
 model_comp <- performance::compare_performance(janka.ls1, janka.gamma)
 print_md(model_comp)
 ```
 
-While comparing these indices is often useful, making a decision (for instance, which model to keep or drop) can often be hard, as the indices can give conflicting suggestions. Additionally, it is sometimes unclear which index to favor in the given context.
+While comparing these indices is often useful, making a decision (for instance, which model to keep or drop) can often be hard, as the indices can give conflicting suggestions.
+Additionally, it is sometimes unclear which index to favor in the given context.
 
 **Summary**
 
@@ -234,6 +281,8 @@ While comparing these indices is often useful, making a decision (for instance, 
 -   Instead we use a more flexible GLM approach that can model the mean and variability independently.
 
 -   GLMs based on maximum likelihood use a link function to model the mean (in this case a square-root link) and a variance function to model the variability (in this case the gamma distribution where the variance increases as the square of the mean).
+
+-   Interpretability matters: Sometimes a slightly worse-fitting model may be more biologically interpretable.
 
 \
 \
@@ -252,3 +301,11 @@ Maximum likelihood vs least squares in linear regression
 Box-Cox:
 
 <https://www.statisticshowto.datasciencecentral.com/box-cox-transformation/>
+
+Analogy to help logically interpret link functions:
+
+-   Just as pilots follow great-circle routes that look curved on maps but are straight in 3D, GLMs use link functions to keep modeling “straight” (linear) while honoring constraints.
+
+-   This analogy isn't standard in textbooks, but it captures the geometric beauty of GLMs and helps internalize why the link function exists.
+
+![](../images/great_circle1.jpg) ![](../images/great_circle2.jpg)
