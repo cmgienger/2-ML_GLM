@@ -104,10 +104,10 @@ I suggest a way better than the `autoplot` function in `ggfortify` that we have 
 performance::check_model(janka.ls1) #easystats package
 ```
 
-There are two very subtle problems with the OLS model: 
+There are two very subtle problems with the OLS model:
 
-- there is some curvature in the relationship that is not captured using the `lm` specification 
-- the variance is not constant; it increases with the mean
+-   there is some curvature in the relationship that is not captured using the `lm` specification
+-   the variance is not constant; it increases with the mean
 
 One way to deal with these issue is to transform the response variable.
 But how should be transform the response?
@@ -163,21 +163,60 @@ data <- data.frame(
 knitr::kable(data, format = "pipe", digits = 2, align = "c",
       caption = "Original Data and Powers of y")
 ```
+
 \
 \
-![](../images/boxcox.jpeg)
+
+### Common Box-Cox Transformations
+
+<div style="text-align: center;">
+
+<table style="margin-left:auto; margin-right:auto; border-collapse: collapse; width: 50%; text-align: center; border: 2px solid black;">
+  <thead>
+    <tr>
+      <th style="padding: 8px; width: 40%; border: 1px solid black;">Lambda value (λ)</th>
+      <th style="padding: 8px; width: 60%; border: 1px solid black;">Transformed data (Y')</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border: 1px solid black;">-3</td><td style="border: 1px solid black;">Y<sup>-3</sup> = 1 / Y<sup>3</sup></td></tr>
+    <tr><td style="border: 1px solid black;">-2</td><td style="border: 1px solid black;">Y<sup>-2</sup> = 1 / Y<sup>2</sup></td></tr>
+    <tr><td style="border: 1px solid black;">-1</td><td style="border: 1px solid black;">Y<sup>-1</sup> = 1 / Y<sup>1</sup></td></tr>
+    <tr><td style="border: 1px solid black;">-0.5</td><td style="border: 1px solid black;">Y<sup>-0.5</sup> = 1 / √(Y)</td></tr>
+    <tr><td style="border: 1px solid black;">0</td><td style="border: 1px solid black;">log(Y) **</td></tr>
+    <tr><td style="border: 1px solid black;">0.5</td><td style="border: 1px solid black;">Y<sup>0.5</sup> = √(Y)</td></tr>
+    <tr><td style="border: 1px solid black;">1</td><td style="border: 1px solid black;">Y<sup>1</sup> = Y</td></tr>
+    <tr><td style="border: 1px solid black;">2</td><td style="border: 1px solid black;">Y<sup>2</sup></td></tr>
+    <tr><td style="border: 1px solid black;">3</td><td style="border: 1px solid black;">Y<sup>3</sup></td></tr>
+  </tbody>
+</table>
+
+</div>
+
+Note:  
+The transformation for zero is `log(0)`, otherwise all data would transform to Y⁰ = 1.  
+The transformation doesn't always work well, so make sure you check your data after the transformation with a 
+[normal probability plot](https://en.wikipedia.org/wiki/Normal_probability_plot).
+
+Reference:  
+Box, G. E. P., & Cox, D. R. (1964). *An analysis of transformations*. Journal of the Royal Statistical Society: Series B (Methodological), 26(2), 211–252.  
+[Available online here](https://www.jstor.org/stable/2984418).
 \
+\
+
+**What do these different transformations look like?**
+
 \
 The solid black line graphs the Box-Cox transformation for 𝜆=1, which is just 𝑥→𝑥−1.
 It merely shifts the center of the batch to 0 (as do all the Box-Cox transformations).
 The upward curving red line is for 𝜆=2.
-The downward curving lines are in order of increasing curvature, the smaller values of 𝜆 down to −1.
-\
+The downward curving lines are in order of increasing curvature, the smaller values of 𝜆 down to −1.\
+
 ![](../images/boxcox_2.png)\
 The results of the Box--Cox transformation of Janka hardness data suggest that a value of lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.\
 Video explaining calculation of lambda: <https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s>\
 
-\
+Let's remind ourselves what the original data look like, plotted next to the transformed ($\lambda$=0.5, a.k.a. square-root transformed).
 
 ```{r plot sqrt transform, fig.width=8, message=FALSE, warning=FALSE}
 #SQRT Timber hardness measured on the 'Janka' scale
@@ -225,7 +264,7 @@ However, *rather than transforming the data we transform the predictions made by
 Commonly used link functions include the *log*, *square root*, and *logistic*.
 
 | **Response Type**         | **Distribution (Family)** | **Link Function** | **Typical Use**                  |
-|-----------------|-----------------|-----------------|----------------------|
+|-----------------|-----------------|-----------------|---------------------|
 | Count                     | Poisson                   | Log               | Abundance, number of individuals |
 | Overdispersed Count       | Negative Binomial         | Log               | Abundance with high variance     |
 | Binary (presence/absence) | Binomial                  | Logit or Probit   | Species occurrence               |
@@ -233,7 +272,9 @@ Commonly used link functions include the *log*, *square root*, and *logistic*.
 | Continuous, positive      | Gamma                     | Log or Inverse    | Biomass, energetic rates         |
 | Continuous, unbounded     | Gaussian                  | Identity          | Temperature, body size           |
 
-: GLMs allow for response variables with non-normal distributions, making them flexible for ecological data. The choice of error structure (distribution + link function) depends on the type of response variable:
+GLMs allow for response variables with non-normal distributions, making them flexible for ecological data. The choice of error structure (distribution + link function) depends on the type of response variable:
+\
+\
 
 ![](../images/GLM_families_visual.png)
 
