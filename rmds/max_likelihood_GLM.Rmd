@@ -50,9 +50,35 @@ library("patchwork")
     Essentially we try out many potential lines of best fit using algorithms and gradually home in on what looks like the best solution.
     <br> <br>
 
-    <center>![](../images/IWLS_vs_OLS.gif)</center>
+**What IWLS Does**
 
-    <br> <br>
+IWLS is the computational method used to fit GLMs.
+It’s essentially a clever way to approximate maximum likelihood estimation (MLE) using repeated weighted least squares steps.
+
+The process:
+
+1.  **Start with an initial guess** for the model parameters (e.g., assume all coefficients are zero).
+
+2.  **Linearize the model** using a first-order Taylor expansion (this is like unwrapping the curve so it looks linear).
+
+3.  **Weight the data points** based on how reliable they are:
+
+    Points with low variance get higher weight (more trust).
+
+    Points with high variance get lower weight.
+
+4.  **Solve this weighted least squares** problem to update parameter estimates.
+
+5.  **Iterate**: Use the new estimates, recompute weights, and repeat steps 2–4.
+
+6.  Stop when changes between iterations are very small (**convergence**).
+
+This iterative approach allows us to handle complex likelihood surfaces for non-normal data.
+
+<center>![](../images/IWLS_vs_OLS.gif)</center>
+
+<br>
+<br>
 
 -   To avoid very small numbers the calculations are done with the (natural) log-likelihood (calculations that are multiplicative on the likelihood scale become additive with log-likelihoods).
 
@@ -63,14 +89,19 @@ library("patchwork")
 
 -   Deviance approximately follows the chi-square distribution (with DF equal to the number of parameters of the model), which allows the calculation of levels of probability and confidence, just as the normal distribution does when using normal least squares.
 
+<br>
+
+**Fit Standard OLS Model and Compare It To Maximum Likelihood Model**
+
 ```{r janka linear model}
 #janka is pronounced 'Yangka'
 data(janka) # load data
 names(janka) <- c("Density", "Hardness") # assign full names
-janka # Box 4.1
+head(janka) # Box 4.1
 ```
+<br>
 
-**OLS Example:**
+**OLS Model to Minimize Sum of Squared Residuals**
 
 The Janka hardness test, created by Austrian-born American researcher Gabriel Janka (1864–1932), measures the resistance of a sample of wood to denting and wear.
 It measures the force required to embed a .44 in steel ball halfway into a sample of wood.
@@ -115,7 +146,9 @@ What mathematical function should be use?
 
 Another way is to deal with these issues is to perform the transformation directly within the linear model specification (we will do this later using a GLM).
 
-**Maximum Likelihood to find best transformation:**
+<br>
+
+**Maximum Likelihood Model to Find Best Data Transformation**
 
 Figure 8.1 A likelihood surface for the Box--Cox function applied to the simple linear regression of the Janka wood hardness data.
 
@@ -134,7 +167,9 @@ The R output for the `boxcox()` function plots the maximum likelihood surface (t
 The 95% CI is produced by dropping down 1.92 log-likelihood units from the maximum likelihood value, moving horizontally left and right (the dotted line labelled 95% in Fig. 8.1) until the likelihood surface is met and then dropping down from these points as shown by the outer vertical dotted lines in the same figure.
 The value of 1.92 derives from the critical value of chi-squared (deviance, the generalized equivalent of SS, is distributed approximately following chi-square) with 1 DF and at the P \< 0.05 level of confidence in question, divided by two (for a two-tailed test).
 
-**So how do we interpret** $\lambda$?
+<br>
+
+**So how do we interpret** $\lambda$ (ML-estimated transformation value)?
 
 Any number raised to the power of **zero** equals one, a special behavior is defined that integrates smoothly with the other transformations: $\lambda$=0 is the natural log transformation.
 
@@ -169,44 +204,45 @@ knitr::kable(data, format = "pipe", digits = 2, align = "c",
 
 ### Common Box-Cox Transformations
 
-<div style="text-align: center;">
+::: {style="text-align: center;"}
++------------------+-----------------------+
+| Lambda value (λ) | Transformed data (Y') |
++==================+=======================+
+| -3               | Y^-3^ = 1 / Y^3^      |
++------------------+-----------------------+
+| -2               | Y^-2^ = 1 / Y^2^      |
++------------------+-----------------------+
+| -1               | Y^-1^ = 1 / Y^1^      |
++------------------+-----------------------+
+| -0.5             | Y^-0.5^ = 1 / √(Y)    |
++------------------+-----------------------+
+| 0                | log(Y) \*\*           |
++------------------+-----------------------+
+| 0.5              | Y^0.5^ = √(Y)         |
++------------------+-----------------------+
+| 1                | Y^1^ = Y              |
++------------------+-----------------------+
+| 2                | Y^2^                  |
++------------------+-----------------------+
+| 3                | Y^3^                  |
++------------------+-----------------------+
+:::
 
-<table style="margin-left:auto; margin-right:auto; border-collapse: collapse; width: 50%; text-align: center; border: 2px solid black;">
-  <thead>
-    <tr>
-      <th style="padding: 8px; width: 40%; border: 1px solid black;">Lambda value (λ)</th>
-      <th style="padding: 8px; width: 60%; border: 1px solid black;">Transformed data (Y')</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td style="border: 1px solid black;">-3</td><td style="border: 1px solid black;">Y<sup>-3</sup> = 1 / Y<sup>3</sup></td></tr>
-    <tr><td style="border: 1px solid black;">-2</td><td style="border: 1px solid black;">Y<sup>-2</sup> = 1 / Y<sup>2</sup></td></tr>
-    <tr><td style="border: 1px solid black;">-1</td><td style="border: 1px solid black;">Y<sup>-1</sup> = 1 / Y<sup>1</sup></td></tr>
-    <tr><td style="border: 1px solid black;">-0.5</td><td style="border: 1px solid black;">Y<sup>-0.5</sup> = 1 / √(Y)</td></tr>
-    <tr><td style="border: 1px solid black;">0</td><td style="border: 1px solid black;">log(Y) **</td></tr>
-    <tr><td style="border: 1px solid black;">0.5</td><td style="border: 1px solid black;">Y<sup>0.5</sup> = √(Y)</td></tr>
-    <tr><td style="border: 1px solid black;">1</td><td style="border: 1px solid black;">Y<sup>1</sup> = Y</td></tr>
-    <tr><td style="border: 1px solid black;">2</td><td style="border: 1px solid black;">Y<sup>2</sup></td></tr>
-    <tr><td style="border: 1px solid black;">3</td><td style="border: 1px solid black;">Y<sup>3</sup></td></tr>
-  </tbody>
-</table>
+Note:\
+The transformation for zero is `log(0)`, otherwise all data would transform to Y⁰ = 1.\
+The transformation doesn't always work well, so make sure you check your data after the transformation with a [normal probability plot](https://en.wikipedia.org/wiki/Normal_probability_plot).
 
-</div>
+Reference:\
+Box, G. E. P., & Cox, D. R.
+(1964).
+*An analysis of transformations*.
+Journal of the Royal Statistical Society: Series B (Methodological), 26(2), 211–252.\
+[Available online here](https://www.jstor.org/stable/2984418).\
 
-Note:  
-The transformation for zero is `log(0)`, otherwise all data would transform to Y⁰ = 1.  
-The transformation doesn't always work well, so make sure you check your data after the transformation with a 
-[normal probability plot](https://en.wikipedia.org/wiki/Normal_probability_plot).
-
-Reference:  
-Box, G. E. P., & Cox, D. R. (1964). *An analysis of transformations*. Journal of the Royal Statistical Society: Series B (Methodological), 26(2), 211–252.  
-[Available online here](https://www.jstor.org/stable/2984418).
-\
 \
 
 **What do these different transformations look like?**
 
-\
 The solid black line graphs the Box-Cox transformation for 𝜆=1, which is just 𝑥→𝑥−1.
 It merely shifts the center of the batch to 0 (as do all the Box-Cox transformations).
 The upward curving red line is for 𝜆=2.
@@ -223,15 +259,20 @@ Let's remind ourselves what the original data look like, plotted next to the tra
 plot_sqrt <-
   ggplot(janka, aes(x = Density, y = sqrt(Hardness))) +
   geom_point() +
-  geom_smooth(method = lm, se = FALSE, formula = y ~ x, color = "green") +
+  geom_smooth(method = lm, se = FALSE, color = "green") +
   geom_smooth(color = "orange", se = FALSE) +
   ggtitle("Fiber density vs. (sqrt) wood hardness")
 
-plot_ols + plot_sqrt #use patchwork to show figures side-by-side
+plot_ols + plot_sqrt #use patchwork to show ols and sqrt figures side-by-side
 
 ```
 
 We noted previously that another way is to deal with the curvature and non-constant variance issues is to perform the transformation directly within the linear model specification; We will do this using a GLM.
+
+<br>
+<br>
+<br>
+<br>
 
 **Basics of Generalized Linear Models**\
 \
@@ -263,17 +304,24 @@ The **link** function plays a role equivalent to the transformation in normal le
 However, *rather than transforming the data we transform the predictions made by the linear predictor*.
 Commonly used link functions include the *log*, *square root*, and *logistic*.
 
++---------------------------+---------------------------+-------------------+----------------------------------+
 | **Response Type**         | **Distribution (Family)** | **Link Function** | **Typical Use**                  |
-|-----------------|-----------------|-----------------|---------------------|
++===========================+===========================+===================+==================================+
 | Count                     | Poisson                   | Log               | Abundance, number of individuals |
++---------------------------+---------------------------+-------------------+----------------------------------+
 | Overdispersed Count       | Negative Binomial         | Log               | Abundance with high variance     |
++---------------------------+---------------------------+-------------------+----------------------------------+
 | Binary (presence/absence) | Binomial                  | Logit or Probit   | Species occurrence               |
++---------------------------+---------------------------+-------------------+----------------------------------+
 | Proportions               | Binomial                  | Logit             | Survival rate, cover             |
++---------------------------+---------------------------+-------------------+----------------------------------+
 | Continuous, positive      | Gamma                     | Log or Inverse    | Biomass, energetic rates         |
++---------------------------+---------------------------+-------------------+----------------------------------+
 | Continuous, unbounded     | Gaussian                  | Identity          | Temperature, body size           |
++---------------------------+---------------------------+-------------------+----------------------------------+
 
-GLMs allow for response variables with non-normal distributions, making them flexible for ecological data. The choice of error structure (distribution + link function) depends on the type of response variable:
-\
+GLMs allow for response variables with non-normal distributions, making them flexible for ecological data.
+The choice of error structure (distribution + link function) depends on the type of response variable:\
 \
 
 ![](../images/GLM_families_visual.png)
