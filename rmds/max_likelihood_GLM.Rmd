@@ -17,7 +17,7 @@ packages_needed <- c("GLMsData", # janka hardness data
                      "arm", # display() etc.
                      "ggfortify", # check model assumptions
                      "easystats", #check model assumptions
-                     "patchwork"
+                     "patchwork" #combine plots
                      )
 pk_to_install <- packages_needed [!( packages_needed %in% rownames(installed.packages())  )]
 if(length(pk_to_install)>0 ){
@@ -79,6 +79,8 @@ This iterative approach allows us to handle complex likelihood surfaces for non-
 
 <br>
 <br>
+
+Technical Details
 
 -   To avoid very small numbers the calculations are done with the (natural) log-likelihood (calculations that are multiplicative on the likelihood scale become additive with log-likelihoods).
 
@@ -345,7 +347,7 @@ GLMs allow for response variables with non-normal distributions, making them fle
 The choice of error structure (distribution + link function) depends on the type of response variable:\
 \
 
-![](../images/GLM_families_visual.png)
+![](../images/GLM_distributions.png)
 
 To see how this works, lets fit the Janka model using both OLS and GLM.
 
