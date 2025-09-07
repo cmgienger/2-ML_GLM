@@ -96,8 +96,7 @@ This iterative approach allows us to handle complex likelihood surfaces for non-
 ```{r janka linear model}
 #janka is pronounced 'Yangka'
 data(janka) # load data
-names(janka) <- c("Density", "Hardness") # assign full names
-head(janka) # Box 4.1
+str(janka) # look at properties of the dataframe
 ```
 <br>
 
@@ -126,7 +125,29 @@ plot_ols
 
 ## Normal least squares linear regression using lm(): 
 janka.ls1 <- lm(Hardness~Density, data = janka)
+
+summary(janka.ls1)
 ```
+<br>
+
+How do we interpret these coefficients and statistics? Take one minute to write down your thoughts.
+
+<br>
+<br>
+
+First we need to remind ourselves about the (important) assumptions of linear modeling:
+
+-  **Linearity** The response variable can be described by linear combination of the parameters (regression coefficients) and the predictor variables.
+
+-  **Constant variance** (a.k.a. homoscedasticity). The variance of the errors (residuals) does not depend on the values of the predictor variables.
+
+-  **Independence of errors** The errors of the response variables are uncorrelated with each other (when having more than one response variable).
+
+-  Lack of strong **multicollinearity** in the predictors. Each predictor show provide independent information. 
+
+For our purposes here, the first two (linearity and constant variance) are the most relevant.
+
+<br>
 
 Check assumptions for fitting a linear model.
 I suggest a way better than the `autoplot` function in `ggfortify` that we have used before.
