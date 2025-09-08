@@ -77,8 +77,7 @@ This iterative approach allows us to handle complex likelihood surfaces for non-
 
 <center>![](../images/IWLS_vs_OLS.gif)</center>
 
-<br>
-<br>
+<br> <br>
 
 Technical Details
 
@@ -100,6 +99,7 @@ Technical Details
 data(janka) # load data
 str(janka) # look at properties of the dataframe
 ```
+
 <br>
 
 **OLS Model to Minimize Sum of Squared Residuals**
@@ -130,22 +130,26 @@ janka.ls1 <- lm(Hardness~Density, data = janka)
 
 summary(janka.ls1)
 ```
-<br>
-
-How do we interpret these coefficients and statistics? Take one minute to write down your thoughts.
 
 <br>
-<br>
+
+<div style="text-align: center;">
+  <img src="images/interpret_coeff-01.png" width="400">
+</div>
+
+<br> <br>
 
 First we need to remind ourselves about the (important) assumptions of linear modeling:
 
--  **Linearity** The response variable can be described by linear combination of the parameters (regression coefficients) and the predictor variables.
+-   **Linearity** The response variable can be described by linear combination of the parameters (regression coefficients) and the predictor variables.
 
--  **Constant variance** (a.k.a. homoscedasticity). The variance of the errors (residuals) does not depend on the values of the predictor variables.
+-   **Constant variance** (a.k.a. homoscedasticity).
+    The variance of the errors (residuals) does not depend on the values of the predictor variables.
 
--  **Independence of errors** The errors of the response variables are uncorrelated with each other (when having more than one response variable).
+-   **Independence of errors** The errors of the response variables are uncorrelated with each other (when having more than one response variable).
 
--  Lack of strong **multicollinearity** in the predictors. Each predictor show provide independent information. 
+-   Lack of strong **multicollinearity** in the predictors.
+    Each predictor show provide independent information.
 
 For our purposes here, the first two (linearity and constant variance) are the most relevant.
 
@@ -228,27 +232,17 @@ knitr::kable(data, format = "pipe", digits = 2, align = "c",
 ### Common Box-Cox Transformations
 
 ::: {style="text-align: center;"}
-+------------------+-----------------------+
 | Lambda value (λ) | Transformed data (Y') |
-+==================+=======================+
+|------------------|-----------------------|
 | -3               | Y^-3^ = 1 / Y^3^      |
-+------------------+-----------------------+
 | -2               | Y^-2^ = 1 / Y^2^      |
-+------------------+-----------------------+
 | -1               | Y^-1^ = 1 / Y^1^      |
-+------------------+-----------------------+
 | -0.5             | Y^-0.5^ = 1 / √(Y)    |
-+------------------+-----------------------+
 | 0                | log(Y) \*\*           |
-+------------------+-----------------------+
 | 0.5              | Y^0.5^ = √(Y)         |
-+------------------+-----------------------+
 | 1                | Y^1^ = Y              |
-+------------------+-----------------------+
 | 2                | Y^2^                  |
-+------------------+-----------------------+
 | 3                | Y^3^                  |
-+------------------+-----------------------+
 :::
 
 Note:\
@@ -292,10 +286,7 @@ plot_ols + plot_sqrt #use patchwork to show ols and sqrt figures side-by-side
 
 We noted previously that another way is to deal with the curvature and non-constant variance issues is to perform the transformation directly within the linear model specification; We will do this using a GLM.
 
-<br>
-<br>
-<br>
-<br>
+<br> <br> <br> <br>
 
 **Basics of Generalized Linear Models**\
 \
@@ -327,21 +318,14 @@ The **link** function plays a role equivalent to the transformation in normal le
 However, *rather than transforming the data we transform the predictions made by the linear predictor*.
 Commonly used link functions include the *log*, *square root*, and *logistic*.
 
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | **Response Type**         | **Distribution (Family)** | **Link Function** | **Typical Use**                  |
-+===========================+===========================+===================+==================================+
+|-----------------|-----------------|-----------------|---------------------|
 | Count                     | Poisson                   | Log               | Abundance, number of individuals |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | Overdispersed Count       | Negative Binomial         | Log               | Abundance with high variance     |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | Binary (presence/absence) | Binomial                  | Logit or Probit   | Species occurrence               |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | Proportions               | Binomial                  | Logit             | Survival rate, cover             |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | Continuous, positive      | Gamma                     | Log or Inverse    | Biomass, energetic rates         |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 | Continuous, unbounded     | Gaussian                  | Identity          | Temperature, body size           |
-+---------------------------+---------------------------+-------------------+----------------------------------+
 
 GLMs allow for response variables with non-normal distributions, making them flexible for ecological data.
 The choice of error structure (distribution + link function) depends on the type of response variable:\
