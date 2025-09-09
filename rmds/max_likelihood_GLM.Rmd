@@ -111,7 +111,7 @@ This ball diameter was chosen to produce a circle with an area of 100 square mil
 A common use of Janka hardness ratings is to determine whether a species is suitable for use as flooring.
 
 ![](../images/Janka_hardness_test.png) <br> <br> Based on the sampled species above it looks like the hardest Brazilian hardwoods are much harder than you might expect based on their ordering.
-The pattern looks 'non-linear' and almost seems exponential at the bottom (hardest) end.
+The pattern looks 'non-linear' and almost seems exponential at the bottom (hardest) end. Obvious curvature. 
 <br> <br>
 
 ```{r janka model plot, message=FALSE, warning=FALSE}
@@ -167,7 +167,7 @@ There are two very subtle problems with the OLS model:
 -   there is some curvature in the relationship that is not captured using the `lm` specification
 -   the variance is not constant; it increases with the mean
 
-One way to deal with these issue is to transform the response variable.
+One way (the traditional way) to deal with these issue is to transform the response variable.
 But how should be transform the response?
 What mathematical function should be use?
 
