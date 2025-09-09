@@ -254,8 +254,9 @@ Box, G. E. P., & Cox, D. R.
 (1964).
 *An analysis of transformations*.
 Journal of the Royal Statistical Society: Series B (Methodological), 26(2), 211–252.\
-[Available online here](https://www.jstor.org/stable/2984418).\
+[Available online here](https://www.jstor.org/stable/2984418).
 
+\
 \
 
 **What do these different transformations look like?**
@@ -265,9 +266,15 @@ It merely shifts the center of the batch to 0 (as do all the Box-Cox transformat
 The upward curving red line is for 𝜆=2.
 The downward curving lines are in order of increasing curvature, the smaller values of 𝜆 down to −1.\
 
-![](../images/boxcox_2.png)\
+<center>
+
+![](../images/boxcox_2.png)
+
+</center>
+
 The results of the Box--Cox transformation of Janka hardness data suggest that a value of lambda of around 0.5 will give the best fit to the data so we can proceed using the square-root transformation, or rather the GLM equivalent.\
 Video explaining calculation of lambda: <https://www.youtube.com/watch?v=vGOpEpjz2Ks&t=678s>\
+\
 
 Let's remind ourselves what the original data look like, plotted next to the transformed ($\lambda$=0.5, a.k.a. square-root transformed).
 
@@ -286,13 +293,16 @@ plot_ols + plot_sqrt #use patchwork to show ols and sqrt figures side-by-side
 
 We noted previously that another way is to deal with the curvature and non-constant variance issues is to perform the transformation directly within the linear model specification; We will do this using a GLM.
 
-<br> <br> <br> <br>
+<br> <br> <br>
+
+-------------------------------------------------------------
 
 **Basics of Generalized Linear Models**\
 \
 The general form of the GLM is:
 
-**glm**(formula, **family**=familytype(**link**=linkfunction), **data**=)\
+**glm**(formula, **family** = familytype(**link** = linkfunction), **data** = data)
+\
 \
 GLMs were first proposed in an article by Nelder and Wedderburn in 1972 (J. R. Statist. Soc. A, 135: 370).
 The 1983 book Generalized linear models by McCulloch and Nelder is the standard reference.
@@ -336,21 +346,21 @@ The choice of error structure (distribution + link function) depends on the type
 To see how this works, lets fit the Janka model using both OLS and GLM.
 
 ```{r janka OLS}
-janka.ls1 <- lm(Hardness~Density, data= janka )
+janka.ls1 <- lm(Hardness~Density, data = janka)
 anova(janka.ls1)
 ```
 
-We can fit the same model using the GLM function:
+We can fit the same model using the equivalent GLM function:
 
 ```{r janka GLM}
-janka.ml1 <- glm(Hardness~Density, data= janka, family= gaussian(link="identity"))
+janka.ml1 <- glm(Hardness~Density, family = gaussian(link = "identity"), data = janka)
 anova(janka.ml1)
 ```
 
 Notice in the model specification above, the *family=gaussian* and *link=identity* are the defaults.
 Like other R code, we can omit specification of default parameters, but probably best to include them until we understand the models fully.
 
-*Gaussian* is another word for 'normal'; the *identity* link is equivalent to performing no transformation, so no transformation is applied to the fitted values from the linear predictor.
+*Gaussian* is another word for 'normal'; the *identity* link is equivalent to performing no transformation (like a Box-Cox λ=1), so no transformation is applied to the fitted values from the linear predictor.
 
 Notice that when using the `anova()` function, we get different information for *lm* vs *glm* model specification.
 ANOVA of the lm gives a least squares ANOVA table, whereas the glm gives a maximum likelihood analysis of deviance (ANODEV).
@@ -360,7 +370,11 @@ Recall that for GLMs using the normal (gaussian) distribution, the deviance is t
 So the values for the deviance here (based on likelihood) match the conventional ANOVA table.
 However, there is no equivalent of the means squares in the analysis of deviance.
 
+\
+
 Quick question: **What are mean squares used for? What do they tell us?**
+
+\
 
 The point here is to demonstrate that the `glm()` function with the Gaussian variance function and identity link performs the equivalent analysis to the `lm()` function we can see how to take fuller advantage of its greater flexibility.
 
@@ -373,17 +387,18 @@ It turns out that for the gamma distribution the variance increases as the squar
 We can fit a GLM with a square-root link and gamma distribution variance function as follows:
 
 ```{r gamma link function}
-janka.gamma <- glm(Hardness~Density, data= janka, family=Gamma(link= "sqrt"))
-#summary(janka.gamma)
+janka.gamma <- glm(Hardness~Density, data = janka, family = Gamma(link = "sqrt"))
+summary(janka.gamma)
 
 ggplot(janka,aes(Density,Hardness)) + 
   geom_point() +
-  geom_smooth(method="glm",colour="red",
-                         method.args=list(family="Gamma"(link="sqrt")))+
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"(link = "sqrt")), colour="red")+
   labs(title="GLM, square-root link, Gamma variance")
 ```
 
-![](../images/fig8.3.jpeg)\
+![](../images/fig8.3.jpeg)
+\
+
 Figure 8.3 might help relate the GLM approach using a link function to the linear model analysis of the square-root transformed data.
 
 -   To recap, the untransformed data (left-hand panel) show that the positive linear relationship has some upward curvature with increasing scatter.
@@ -419,8 +434,7 @@ Additionally, it is sometimes unclear which index to favor in the given context.
 
 -   A simple normal least squares linear regression failed to capture the curvature in the relationship and infringed the assumption of approximately equal variability around the regression line: as is often the case the variance increases with the mean.
 
--   A square-root transformation of the Janka wood hardness data produces a linear relationship but the variability is still unequal.
-    In contrast, log transformation equalizes the variability but generates its own curvature.
+-   A square-root transformation of the Janka wood hardness data produces a linear relationship but the variability is still unequal. In contrast, log transformation equalizes the variability but generates its own curvature.
 
 -   Instead we use a more flexible GLM approach that can model the mean and variability independently.
 
@@ -434,6 +448,21 @@ Additionally, it is sometimes unclear which index to favor in the given context.
 \
 \
 \
+
+Analogy to help logically interpret link functions:
+
+-   Just as pilots follow great-circle routes that look curved on maps but are straight in 3D, GLMs use link functions to keep modeling “straight” (linear) while honoring constraints.
+
+-   This analogy isn't standard in textbooks, but it captures the geometric beauty of GLMs and helps internalize why the link function exists.
+
+<center>
+
+![](../images/great_circle1.jpg) ![](../images/great_circle2.jpg)
+
+</center>
+
+\
+
 Visual Explanation of Maximum Likelihood:
 
 <https://www.youtube.com/watch?v=XepXtl9YKwc>
@@ -446,10 +475,3 @@ Box-Cox:
 
 <https://www.statisticshowto.datasciencecentral.com/box-cox-transformation/>
 
-Analogy to help logically interpret link functions:
-
--   Just as pilots follow great-circle routes that look curved on maps but are straight in 3D, GLMs use link functions to keep modeling “straight” (linear) while honoring constraints.
-
--   This analogy isn't standard in textbooks, but it captures the geometric beauty of GLMs and helps internalize why the link function exists.
-
-![](../images/great_circle1.jpg) ![](../images/great_circle2.jpg)
