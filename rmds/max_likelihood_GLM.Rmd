@@ -179,7 +179,7 @@ Another way is to deal with these issues is to perform the transformation direct
 
 Figure 8.1 A likelihood surface for the Box--Cox function applied to the simple linear regression of the Janka wood hardness data.
 
-Box Cox transformations are done by raising each point of the response variable (y) to a power (lambda, $\lambda$) that is systematically varied.
+Box Cox transformations are done by raising each point of the response variable (y) to a power (lambda, $\lambda$) that is systematically varied (e.g. applying several transformations and selecting the best).
 For example, when $\lambda$=2, the data are squared, when $\lambda$=0.5 they are square rooted, and so on.
 In Box-Cox transformations, only the response variable (y) is transformed to improve model assumptions, while the predictor variables (x) remain unchanged.
 
